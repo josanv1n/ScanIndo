@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, Upload, RefreshCw, CheckCircle2, AlertCircle, Loader2, Cpu, Trash2, ShieldCheck, Zap, MessageCircle, Heart } from 'lucide-react';
+import { Camera, Upload, RefreshCw, CheckCircle2, AlertCircle, Loader2, Cpu, Trash2, ShieldCheck, Zap, MessageCircle, Heart, Settings, Languages, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -23,6 +23,10 @@ export default function App() {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [webAppUrl, setWebAppUrl] = useState<string>(
+    localStorage.getItem('webAppUrl') || process.env.VITE_WEB_APP_URL || ''
+  );
+  const [showSettings, setShowSettings] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,59 +110,35 @@ export default function App() {
     stopCamera();
   };
 
-  // Scan and Translate with Gemini
+  // Scan and Translate with Google Apps Script Bridge
   const scanAndTranslate = async (imageData: string) => {
+    if (!webAppUrl) {
+      setError("Silakan atur URL Web App (Apps Script) di pengaturan (ikon gear) terlebih dahulu.");
+      return;
+    }
+
     setIsScanning(true);
     setError(null);
 
     try {
-      const base64Data = imageData.split(',')[1];
-      
-      const prompt = `Kamu adalah model visi dan penerjemah yang sangat andal. 
-Tugas: SCAN semua tulisan yang terlihat pada gambar. Jika tulisan tersebut bukan bahasa Indonesia, TERJEMAHKAN menjadi bahasa Indonesia. 
-Keluarkan HANYA JSON MURNI sesuai schema berikut:
-{
-  "originalText": string,
-  "translatedText": string,
-  "description": string
-}
-Aturan ketat:
-- Hanya keluarkan JSON (tanpa komentar atau teks lain).
-- "originalText" berisi teks asli yang ditemukan (jika ada).
-- "translatedText" berisi hasil terjemahan ke bahasa Indonesia secara utuh.
-- "description" HARUS menjabarkan daftar kata atau kalimat asing yang ditemukan beserta artinya dengan format baris per baris:
-  [Bahasa Asing] = [Bahasa Indonesia]
-  [Bahasa Asing] = [Bahasa Indonesia]
-  ...dan seterusnya.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: {
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: "image/jpeg", data: base64Data } }
-          ]
+      const response = await fetch(webAppUrl, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'text/plain',
         },
-        config: {
-          responseMimeType: "application/json"
-        }
+        body: JSON.stringify({
+          action: 'scanIndo',
+          image: imageData
+        })
       });
 
-      const text = response.text;
-      if (text) {
-        try {
-          const parsedResult = JSON.parse(text) as ScanResult;
-          setResult(parsedResult);
-        } catch (parseErr) {
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            setResult(JSON.parse(jsonMatch[0]) as ScanResult);
-          } else {
-            throw new Error("DATA_FORMAT_ERROR");
-          }
-        }
+      const resultData = await response.json();
+
+      if (resultData.status === 'success') {
+        setResult(resultData.data);
       } else {
-        throw new Error("NULL_RESPONSE");
+        throw new Error(resultData.message || "Gagal memproses gambar melalui jembatan.");
       }
     } catch (err: any) {
       console.error("Scan error details:", err);
@@ -184,7 +164,16 @@ Aturan ketat:
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
               <span className="text-[10px] uppercase tracking-[0.2em] text-emerald-500/70 font-bold">System Online</span>
             </div>
-            <span className="text-[10px] text-stone-500">v2.5.0-FLASH</span>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setShowSettings(!showSettings)}
+                className="p-1 hover:bg-white/5 rounded transition-colors"
+                title="Settings"
+              >
+                <Settings className="w-3 h-3 text-stone-500" />
+              </button>
+              <span className="text-[10px] text-stone-500">v2.5.0-FLASH</span>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
@@ -196,6 +185,48 @@ Aturan ketat:
             </div>
           </div>
         </header>
+
+        {/* Settings Panel */}
+        <AnimatePresence>
+          {showSettings && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="glass-panel rounded-xl overflow-hidden mb-6"
+            >
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">
+                    Bridge Configuration (GAS)
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    type="text"
+                    value={webAppUrl}
+                    onChange={(e) => {
+                      setWebAppUrl(e.target.value);
+                      localStorage.setItem('webAppUrl', e.target.value);
+                    }}
+                    placeholder="https://script.google.com/macros/s/.../exec"
+                    className="flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-emerald-500 focus:outline-none focus:border-emerald-500/50 font-mono"
+                  />
+                  <button 
+                    onClick={() => setShowSettings(false)}
+                    className="bg-emerald-500 text-black px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider"
+                  >
+                    Save
+                  </button>
+                </div>
+                <p className="text-[8px] text-stone-500 italic">
+                  * Enter your Apps Script Web App URL to enable secure scanning via Spreadsheet bridge.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Main Content */}
         <main className="flex-1 space-y-6">
