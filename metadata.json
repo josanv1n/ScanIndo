@@ -1,0 +1,5 @@
+{
+  "name": "IndoScan Translate",
+  "description": "Scan images from camera or upload and translate any non-Indonesian text to Indonesian.",
+  "requestFramePermissions": ["camera"]
+}
