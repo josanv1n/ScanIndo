@@ -11,10 +11,17 @@ import { GoogleGenAI } from "@google/genai";
 // Initialize Gemini AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
+interface ScanRegion {
+  box_2d: [number, number, number, number];
+  text: string;
+  translation: string;
+}
+
 interface ScanResult {
   originalText: string;
   translatedText: string;
-  description: string;
+  description?: string;
+  regions?: ScanRegion[];
 }
 
 export default function App() {
@@ -23,6 +30,7 @@ export default function App() {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
   const [webAppUrl, setWebAppUrl] = useState<string>(
     localStorage.getItem('webAppUrl') || process.env.VITE_WEB_APP_URL || ''
   );
@@ -99,6 +107,21 @@ export default function App() {
       reader.readAsDataURL(file);
     }
     e.target.value = '';
+  };
+
+  // Copy result to clipboard
+  const copyToClipboard = () => {
+    if (result) {
+      const text = `Original: ${result.originalText}\n\nTranslation: ${result.translatedText}`;
+      navigator.clipboard.writeText(text);
+      // Simple feedback
+      const btn = document.getElementById('copy-btn');
+      if (btn) {
+        const originalText = btn.innerText;
+        btn.innerText = 'COPIED!';
+        setTimeout(() => btn.innerText = originalText, 2000);
+      }
+    }
   };
 
   // Reset App
@@ -266,6 +289,29 @@ export default function App() {
 
           {/* Viewport */}
           <div className="relative">
+            {/* Control Bar for Result */}
+            {result && (
+              <div className="absolute -top-12 left-0 right-0 flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Show original</span>
+                  <button 
+                    onClick={() => setShowOriginal(!showOriginal)}
+                    className={`w-10 h-5 rounded-full transition-colors relative ${showOriginal ? 'bg-emerald-500' : 'bg-stone-700'}`}
+                  >
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${showOriginal ? 'left-6' : 'left-1'}`} />
+                  </button>
+                </div>
+                <button 
+                  id="copy-btn"
+                  onClick={copyToClipboard}
+                  className="flex items-center gap-1.5 px-3 py-1 bg-stone-800 border border-white/10 rounded-lg text-[10px] font-bold text-stone-300 hover:bg-stone-700 transition-colors"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  COPY TEXT
+                </button>
+              </div>
+            )}
+
             {/* Corner Accents */}
             <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-emerald-500/50" />
             <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-emerald-500/50" />
@@ -313,7 +359,27 @@ export default function App() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="w-full relative"
                   >
-                    <img src={image} alt="Preview" className="w-full h-auto opacity-80" />
+                    <img src={image} alt="Preview" className={`w-full h-auto block transition-opacity ${isScanning ? 'opacity-50' : 'opacity-100'}`} />
+                    
+                    {/* Overlay Regions */}
+                    {!showOriginal && result?.regions && result.regions.map((region, idx) => (
+                      <div 
+                        key={idx}
+                        className="absolute bg-white/90 text-black px-1 py-0.5 rounded shadow-sm flex items-center justify-center text-center overflow-hidden leading-tight border border-black/10"
+                        style={{
+                          top: `${region.box_2d[0] / 10}%`,
+                          left: `${region.box_2d[1] / 10}%`,
+                          width: `${(region.box_2d[3] - region.box_2d[1]) / 10}%`,
+                          height: `${(region.box_2d[2] - region.box_2d[0]) / 10}%`,
+                          fontSize: 'min(2.5vw, 12px)',
+                          fontWeight: '700',
+                          zIndex: 5
+                        }}
+                      >
+                        {region.translation}
+                      </div>
+                    ))}
+
                     {isScanning && <div className="scan-line" />}
                     {isScanning && (
                       <div className="absolute inset-0 bg-emerald-500/10 flex flex-col items-center justify-center">
