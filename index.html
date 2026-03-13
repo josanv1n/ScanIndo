@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#064e3b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>IndoScan Pro - AI Image Translator</title>
     <meta name="description" content="IndoScan Pro: Solusi cerdas terjemahkan gambar bahasa asing ke Indonesia secara otomatis. Cepat, akurat, dan futuristik! 🚀" />
     
@@ -22,6 +26,17 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://josanvin.github.io/josanvin/img/indoscan.png" />
+    <script>
+      // Force mobile view logic
+      (function() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile && window.innerWidth > 600) {
+          console.warn("Desktop mode detected on mobile device. Optimizing for mobile view...");
+          // We can't force the browser to uncheck 'Desktop site', 
+          // but we can ensure our app container stays mobile-sized via CSS (already handled by max-w-md)
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
