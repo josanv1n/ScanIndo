@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, Upload, RefreshCw, CheckCircle2, AlertCircle, Loader2, Cpu, Trash2, ShieldCheck, Zap, MessageCircle, Heart, Settings, Languages, LogOut } from 'lucide-react';
+import { Camera, Upload, RefreshCw, CheckCircle2, AlertCircle, Loader2, Cpu, Trash2, ShieldCheck, Zap, MessageCircle, Heart, Settings, Languages, LogOut, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -31,6 +32,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [webAppUrl, setWebAppUrl] = useState<string>(
     localStorage.getItem('webAppUrl') || process.env.VITE_WEB_APP_URL || ''
   );
@@ -38,6 +40,7 @@ export default function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scan when image changes
   useEffect(() => {
@@ -121,6 +124,31 @@ export default function App() {
         btn.innerText = 'COPIED!';
         setTimeout(() => btn.innerText = originalText, 2000);
       }
+    }
+  };
+
+  // Download Translated Image
+  const downloadImage = async () => {
+    if (!imageContainerRef.current || !result) return;
+    
+    try {
+      setIsDownloading(true);
+      // Hide the scan line if it's there
+      const canvas = await html2canvas(imageContainerRef.current, {
+        useCORS: true,
+        scale: 2, // Higher quality
+        backgroundColor: null,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `IndoScan_${new Date().getTime()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError('Gagal mengunduh gambar. Silakan coba lagi.');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -301,14 +329,24 @@ export default function App() {
                     <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${showOriginal ? 'left-6' : 'left-1'}`} />
                   </button>
                 </div>
-                <button 
-                  id="copy-btn"
-                  onClick={copyToClipboard}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-stone-800 border border-white/10 rounded-lg text-[10px] font-bold text-stone-300 hover:bg-stone-700 transition-colors"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  COPY TEXT
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    id="copy-btn"
+                    onClick={copyToClipboard}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-stone-800 border border-white/10 rounded-lg text-[10px] font-bold text-stone-300 hover:bg-stone-700 transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    COPY
+                  </button>
+                  <button 
+                    onClick={downloadImage}
+                    disabled={isDownloading}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 border border-emerald-500/20 rounded-lg text-[10px] font-bold text-white hover:bg-emerald-500 transition-colors disabled:opacity-50"
+                  >
+                    {isDownloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                    SAVE
+                  </button>
+                </div>
               </div>
             )}
 
@@ -355,6 +393,7 @@ export default function App() {
                 ) : image ? (
                   <motion.div
                     key="image"
+                    ref={imageContainerRef}
                     initial={{ opacity: 0, scale: 1.1 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="w-full relative"
