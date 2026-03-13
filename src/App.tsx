@@ -54,7 +54,7 @@ export default function App() {
   useEffect(() => {
     const incrementVisitor = async () => {
       try {
-        const resp = await fetch('https://api.counterapi.dev/v1/countthings-app-v2/visitor/up');
+        const resp = await fetch('https://api.counterapi.dev/v1/translate-lake-nine-app-v2/visitor/up');
         const data = await resp.json();
         if (data && data.count) {
           setVisitorCount(data.count);
