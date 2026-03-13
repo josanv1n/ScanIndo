@@ -541,15 +541,32 @@ export default function App() {
           </div>
 
           {/* WhatsApp Link */}
-          <a 
-            href="https://wa.me/6281341300100" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-full transition-all group mb-8"
-          >
-            <MessageCircle className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Chat Mimin (WA)</span>
-          </a>
+          <div className="flex flex-col items-center gap-4 mb-8">
+            <a 
+              href="https://wa.me/6281341300100" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-full transition-all group"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Chat Mimin (WA)</span>
+            </a>
+
+            <button
+              onClick={() => {
+                const text = "Scan & Translate Kilat! Ubah tulisan asing jadi Bahasa Indonesia cuma sekali jepret. Cobain INDOSCAN_PRO sekarang! 🚀\n\nLink: https://translate-lake-nine.vercel.app/\nLogo: https://josanvin.github.io/josanvin/img/indoscan.png";
+                navigator.clipboard.writeText(text);
+                alert("Link & Logo Berhasil Disalin!");
+              }}
+              className="glass-panel px-6 py-3 rounded-xl flex items-center gap-3 hover:bg-white/5 transition-all active:scale-95 border-emerald-500/20"
+            >
+              <img src="https://josanvin.github.io/josanvin/img/indoscan.png" alt="Logo" className="w-6 h-6 object-contain" />
+              <div className="text-left">
+                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Share App Link</p>
+                <p className="text-[8px] text-stone-500">https://translate-lake-nine.vercel.app/</p>
+              </div>
+            </button>
+          </div>
 
           <div className="flex items-center justify-center gap-4 mb-4 opacity-20">
             <div className="h-[1px] w-8 bg-emerald-500" />
