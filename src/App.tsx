@@ -37,6 +37,7 @@ export default function App() {
     localStorage.getItem('webAppUrl') || process.env.VITE_WEB_APP_URL || ''
   );
   const [showSettings, setShowSettings] = useState(false);
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +49,22 @@ export default function App() {
       scanAndTranslate(image);
     }
   }, [image]);
+
+  // Visitor Counter
+  useEffect(() => {
+    const incrementVisitor = async () => {
+      try {
+        const resp = await fetch('https://api.counterapi.dev/v1/countthings-app-v2/visitor/up');
+        const data = await resp.json();
+        if (data && data.count) {
+          setVisitorCount(data.count);
+        }
+      } catch (err) {
+        console.error("Visitor counter error:", err);
+      }
+    };
+    incrementVisitor();
+  }, []);
 
   // Start Camera
   const startCamera = async () => {
@@ -230,18 +247,29 @@ export default function App() {
               <span className="text-[10px] text-stone-500">v2.5.0-FLASH</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="p-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg overflow-hidden">
-              <img 
-                src="https://josanvin.github.io/josanvin/img/indoscan.png" 
-                alt="Logo" 
-                className="w-8 h-8 object-contain"
-                referrerPolicy="no-referrer"
-              />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg overflow-hidden">
+                <img 
+                  src="https://josanvin.github.io/josanvin/img/indoscan.png" 
+                  alt="Logo" 
+                  className="w-8 h-8 object-contain"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div>
+                <h1 className="text-xl font-display font-bold tracking-tighter glow-text">INDOSCAN_PRO</h1>
+                <p className="text-[10px] text-stone-500 uppercase tracking-widest">Neural Translation Interface</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-display font-bold tracking-tighter glow-text">INDOSCAN_PRO</h1>
-              <p className="text-[10px] text-stone-500 uppercase tracking-widest">Neural Translation Interface</p>
+            
+            <div className="flex flex-col items-end">
+              <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">Visitors</span>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-bold text-emerald-500 font-mono">
+                  {visitorCount !== null ? visitorCount.toLocaleString() : '...'}
+                </span>
+              </div>
             </div>
           </div>
           <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded-xl">
@@ -541,32 +569,15 @@ export default function App() {
           </div>
 
           {/* WhatsApp Link */}
-          <div className="flex flex-col items-center gap-4 mb-8">
-            <a 
-              href="https://wa.me/6281341300100" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-full transition-all group"
-            >
-              <MessageCircle className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Chat Mimin (WA)</span>
-            </a>
-
-            <button
-              onClick={() => {
-                const text = "Scan & Translate Kilat! Ubah tulisan asing jadi Bahasa Indonesia cuma sekali jepret. Cobain INDOSCAN_PRO sekarang! 🚀\n\nLink: https://translate-lake-nine.vercel.app/\nLogo: https://josanvin.github.io/josanvin/img/indoscan.png";
-                navigator.clipboard.writeText(text);
-                alert("Link & Logo Berhasil Disalin!");
-              }}
-              className="glass-panel px-6 py-3 rounded-xl flex items-center gap-3 hover:bg-white/5 transition-all active:scale-95 border-emerald-500/20"
-            >
-              <img src="https://josanvin.github.io/josanvin/img/indoscan.png" alt="Logo" className="w-6 h-6 object-contain" />
-              <div className="text-left">
-                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Share App Link</p>
-                <p className="text-[8px] text-stone-500">https://translate-lake-nine.vercel.app/</p>
-              </div>
-            </button>
-          </div>
+          <a 
+            href="https://wa.me/6281341300100" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-full transition-all group mb-8"
+          >
+            <MessageCircle className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Chat Mimin (WA)</span>
+          </a>
 
           <div className="flex items-center justify-center gap-4 mb-4 opacity-20">
             <div className="h-[1px] w-8 bg-emerald-500" />
