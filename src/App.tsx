@@ -115,7 +115,11 @@ export default function App() {
   // Copy result to clipboard
   const copyToClipboard = () => {
     if (result) {
-      const text = `Original: ${result.originalText}\n\nTranslation: ${result.translatedText}`;
+      const promoText = "Scan & Translate Kilat! Ubah tulisan asing jadi Bahasa Indonesia cuma sekali jepret. Cobain INDOSCAN_PRO sekarang! 🚀\n\n";
+      const appLink = "Link: https://translate-lake-nine.vercel.app/\n";
+      const logoLink = "Logo: https://josanvin.github.io/josanvin/img/indoscan.png\n\n";
+      const text = `${promoText}${appLink}${logoLink}Original: ${result.originalText}\n\nTranslation: ${result.translatedText}`;
+      
       navigator.clipboard.writeText(text);
       // Simple feedback
       const btn = document.getElementById('copy-btn');
@@ -227,13 +231,23 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-              <Cpu className="w-6 h-6 text-emerald-500" />
+            <div className="p-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg overflow-hidden">
+              <img 
+                src="https://josanvin.github.io/josanvin/img/indoscan.png" 
+                alt="Logo" 
+                className="w-8 h-8 object-contain"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div>
               <h1 className="text-xl font-display font-bold tracking-tighter glow-text">INDOSCAN_PRO</h1>
               <p className="text-[10px] text-stone-500 uppercase tracking-widest">Neural Translation Interface</p>
             </div>
+          </div>
+          <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded-xl">
+            <p className="text-[11px] text-emerald-400 font-bold leading-relaxed">
+              "Scan & Translate Kilat! Ubah tulisan asing jadi Bahasa Indonesia cuma sekali jepret. Gak pake ribet, langsung paham! 🚀"
+            </p>
           </div>
         </header>
 
